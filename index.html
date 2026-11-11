@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>노학래의 네온 월드 ✨</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        neon: {
+                            pink: '#ff007f',
+                            cyan: '#00f3ff',
+                            purple: '#b000ff',
+                            yellow: '#ffe600',
+                            darkBg: '#090a0f',
+                            cardBg: '#121526'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* 기본 네온 글로우 텍스트 애니메이션 및 스타일 */
+        body {
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        .neon-text-pink {
+            text-shadow: 0 0 5px #ff007f, 0 0 10px #ff007f, 0 0 20px #ff007f, 0 0 40px #ff007f;
+        }
+        .neon-text-cyan {
+            text-shadow: 0 0 5px #00f3ff, 0 0 10px #00f3ff, 0 0 20px #00f3ff, 0 0 40px #00f3ff;
+        }
+        .neon-border-cyan {
+            box-shadow: 0 0 10px #00f3ff, inset 0 0 10px #00f3ff;
+        }
+        .neon-box-pink {
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.4), inset 0 0 15px rgba(255, 0, 127, 0.2);
+        }
+        .neon-box-cyan {
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4), inset 0 0 15px rgba(0, 243, 255, 0.2);
+        }
+
+        /* 글자 통통 튀는 애니메이션 */
+        @keyframes bounceGlow {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-20px) scale(1.1);
+            }
+        }
+
+        .bounce-char {
+            display: inline-block;
+            animation: bounceGlow 1.5s infinite ease-in-out;
+        }
+        .bounce-char:nth-child(1) { animation-delay: 0s; }
+        .bounce-char:nth-child(2) { animation-delay: 0.2s; }
+        .bounce-char:nth-child(3) { animation-delay: 0.4s; }
+
+        /* 3D 카드가 뒤집히는 스타일 */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* 퀴즈 틀렸을 때 위글 애니메이션 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* 마우스 파티클 Canvas */
+        #sparkleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* 축하 폭죽 Canvas */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9998;
+        }
+    </style>
+</head>
+<body class="bg-neon-darkBg text-white min-h-screen font-sans antialiased selection:bg-neon-pink selection:text-white dark:bg-neon-darkBg dark:text-white transition-colors duration-300">
+
+    <!-- 마우스 및 폭죽 캔버스 -->
+    <canvas id="sparkleCanvas"></canvas>
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- 테마 토글 버튼 & 상단 헤더 -->
+    <header class="w-full max-w-5xl mx-auto px-4 py-6 flex justify-between items-center sticky top-0 z-50 backdrop-blur-md bg-opacity-70 dark:bg-opacity-70 border-b border-gray-800 dark:border-gray-800">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-city text-neon-cyan text-xl"></i>
+            <span class="font-bold tracking-wider text-sm md:text-base text-neon-cyan">NEON NIGHTS</span>
+        </div>
+        <button id="themeToggleBtn" class="flex items-center gap-2 px-4 py-2 rounded-full border border-neon-pink text-neon-pink hover:bg-neon-pink hover:text-white transition-all duration-300 shadow-md">
+            <i id="themeIcon" class="fa-solid fa-moon"></i>
+            <span id="themeText" class="text-xs md:text-sm font-semibold">어두운 화면</span>
+        </button>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-16">
+
+        <!-- 1. 타이틀 섹션 (통통 튀는 애니메이션 적용) -->
+        <section class="text-center space-y-6 pt-4">
+            <div class="inline-block px-4 py-1 rounded-full border border-neon-cyan/50 text-neon-cyan text-xs md:text-sm tracking-widest uppercase bg-black/30 backdrop-blur">
+                Welcome to My Space
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight">
+                안녕하세요, <br class="sm:hidden"/>
+                <span class="inline-flex gap-1 text-neon-pink neon-text-pink my-2">
+                    <span class="bounce-char">노</span>
+                    <span class="bounce-char">학</span>
+                    <span class="bounce-char">래</span>
+                </span> 입니다!
+            </h1>
+            
+            <p class="text-gray-400 text-sm md:text-lg max-w-xl mx-auto leading-relaxed">
+                네온 불빛이 번지는 밤거리의 감성을 좋아하는 프론트엔드 탐험가입니다. <br/>
+                저의 비밀스럽고 재미있는 세계에 오신 것을 환영합니다! ✨
+            </p>
+
+            <!-- 방문자 이름 입력 영역 -->
+            <div class="max-w-md mx-auto mt-6 bg-gray-900/80 dark:bg-gray-900/80 p-4 rounded-2xl border border-neon-cyan/30 neon-box-cyan">
+                <label for="visitorName" class="block text-xs text-neon-cyan font-semibold mb-2">방문자님의 이름을 알려주세요!</label>
+                <div class="flex gap-2">
+                    <input type="text" id="visitorName" placeholder="이름 또는 별명 입력..." class="flex-1 bg-black/50 border border-gray-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-neon-pink transition">
+                    <button id="greetBtn" class="bg-gradient-to-r from-neon-pink to-neon-purple text-white px-5 py-2 rounded-xl text-sm font-bold hover:opacity-90 transition">
+                        인사하기
+                    </button>
+                </div>
+                <div id="greetingMessage" class="mt-3 text-sm font-medium text-neon-yellow min-h-[24px] hidden"></div>
+            </div>
+        </section>
+
+        <!-- 2. 좋아하는 것 3가지 (3D Flip 카드) -->
+        <section class="space-y-6">
+            <div class="text-center">
+                <h2 class="text-2xl md:text-3xl font-bold text-neon-cyan neon-text-cyan flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-heart text-neon-pink"></i> 내가 좋아하는 3가지
+                </h2>
+                <p class="text-xs md:text-sm text-gray-400 mt-1">카드를 클릭하여 뒤집어 보세요!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 카드 1: 게임 -->
+                <div class="card-container h-64 perspective-1000 cursor-pointer">
+                    <div class="card-inner relative w-full h-full transform-style-3d border border-neon-pink/40 rounded-2xl bg-gray-900/60 neon-box-pink">
+                        <!-- 앞면 -->
+                        <div class="card-front absolute inset-0 backface-hidden flex flex-col items-center justify-center p-6 text-center">
+                            <div class="w-16 h-16 rounded-full bg-neon-pink/20 flex items-center justify-center mb-4 text-neon-pink text-3xl">
+                                <i class="fa-solid fa-gamepad"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-1">게임 (Game)</h3>
+                            <span class="text-xs text-neon-pink font-semibold">CLICK TO FLIP ↺</span>
+                        </div>
+                        <!-- 뒷면 -->
+                        <div class="card-back absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-purple-900 to-black rounded-2xl p-6 flex flex-col items-center justify-center text-center border border-neon-pink">
+                            <i class="fa-solid fa-ghost text-neon-yellow text-2xl mb-2"></i>
+                            <h4 class="text-base font-bold text-neon-pink mb-2">좋아하는 이유</h4>
+                            <p class="text-xs md:text-sm text-gray-200 leading-relaxed">
+                                현실의 물리 법칙을 무시하고 세상을 구하는 영웅이 될 수 있으니까! (물론 모니터 앞에서 손가락만 바쁘게 움직이지만요 🎮)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 카드 2: 웹툰 -->
+                <div class="card-container h-64 perspective-1000 cursor-pointer">
+                    <div class="card-inner relative w-full h-full transform-style-3d border border-neon-cyan/40 rounded-2xl bg-gray-900/60 neon-box-cyan">
+                        <!-- 앞면 -->
+                        <div class="card-front absolute inset-0 backface-hidden flex flex-col items-center justify-center p-6 text-center">
+                            <div class="w-16 h-16 rounded-full bg-neon-cyan/20 flex items-center justify-center mb-4 text-neon-cyan text-3xl">
+                                <i class="fa-solid fa-book-open-reader"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-1">웹툰 (Webtoon)</h3>
+                            <span class="text-xs text-neon-cyan font-semibold">CLICK TO FLIP ↺</span>
+                        </div>
+                        <!-- 뒷면 -->
+                        <div class="card-back absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-blue-900 to-black rounded-2xl p-6 flex flex-col items-center justify-center text-center border border-neon-cyan">
+                            <i class="fa-solid fa-bolt text-neon-yellow text-2xl mb-2"></i>
+                            <h4 class="text-base font-bold text-neon-cyan mb-2">좋아하는 이유</h4>
+                            <p class="text-xs md:text-sm text-gray-200 leading-relaxed">
+                                손가락 하나로 스크롤만 하면 다른 세계관으로 전이 완료! 다음 화 쿠키 지르는 순간이 세상에서 제일 짜릿합니다 🍪
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 카드 3: 코딩 -->
+                <div class="card-container h-64 perspective-1000 cursor-pointer">
+                    <div class="card-inner relative w-full h-full transform-style-3d border border-neon-yellow/40 rounded-2xl bg-gray-900/60 shadow-[0_0_15px_rgba(255,230,0,0.2)]">
+                        <!-- 앞면 -->
+                        <div class="card-front absolute inset-0 backface-hidden flex flex-col items-center justify-center p-6 text-center">
+                            <div class="w-16 h-16 rounded-full bg-neon-yellow/20 flex items-center justify-center mb-4 text-neon-yellow text-3xl">
+                                <i class="fa-solid fa-code"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-1">코딩 (Coding)</h3>
+                            <span class="text-xs text-neon-yellow font-semibold">CLICK TO FLIP ↺</span>
+                        </div>
+                        <!-- 뒷면 -->
+                        <div class="card-back absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-amber-900 to-black rounded-2xl p-6 flex flex-col items-center justify-center text-center border border-neon-yellow">
+                            <i class="fa-solid fa-bug text-neon-pink text-2xl mb-2"></i>
+                            <h4 class="text-base font-bold text-neon-yellow mb-2">좋아하는 이유</h4>
+                            <p class="text-xs md:text-sm text-gray-200 leading-relaxed">
+                                내가 타이핑한 대로 작동하는 마법 같은 경험! 빨간색 오류 메시지가 뜨면 승부욕이 활활 타오릅니다 🔥
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 모스 부호 OX 퀴즈 -->
+        <section class="bg-gray-900/80 p-6 md:p-8 rounded-3xl border border-neon-pink/30 neon-box-pink relative overflow-hidden" id="quizSection">
+            <div class="text-center space-y-4">
+                <span class="px-3 py-1 bg-neon-pink/20 text-neon-pink text-xs font-bold rounded-full uppercase">Neon Quiz</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-white">모스 부호 해독 OX 퀴즈 📡</h2>
+                <p class="text-gray-300 text-sm">아래 모스 부호가 뜻하는 단어가 맞는지 OX로 맞춰보세요!</p>
+
+                <!-- 문제 박스 -->
+                <div class="bg-black/70 p-4 md:p-6 rounded-2xl border border-gray-700 font-mono tracking-widest text-neon-cyan text-lg md:text-2xl my-4 select-all break-all">
+                    "ㆍㆍ / ㆍ-ㆍㆍ &nbsp; ㆍㆍ &nbsp; -ㆍ- &nbsp; ㆍ / --ㆍ &nbsp; ㆍ- &nbsp; -- &nbsp; ㆍ &nbsp; ㆍㆍㆍ"
+                </div>
+                
+                <p class="text-xs text-gray-400">힌트: 힌트는 영어 대문자 단어 2개입니다! (I L_ _ E  G_ _ E _)</p>
+
+                <!-- 버튼 영역 -->
+                <div class="flex justify-center gap-6 pt-2">
+                    <button id="btnO" class="w-24 h-24 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-700 text-white text-4xl font-black shadow-lg hover:scale-105 active:scale-95 transition flex flex-col items-center justify-center border-2 border-green-400">
+                        O
+                        <span class="text-xs font-normal mt-1">참이다</span>
+                    </button>
+                    <button id="btnX" class="w-24 h-24 rounded-2xl bg-gradient-to-br from-red-500 to-rose-700 text-white text-4xl font-black shadow-lg hover:scale-105 active:scale-95 transition flex flex-col items-center justify-center border-2 border-red-400">
+                        X
+                        <span class="text-xs font-normal mt-1">거짓이다</span>
+                    </button>
+                </div>
+
+                <!-- 결과 메시지 -->
+                <div id="quizResult" class="mt-4 text-base md:text-lg font-bold min-h-[28px]"></div>
+            </div>
+        </section>
+
+        <!-- 4. 오늘 할 미션 생성기 -->
+        <section class="bg-gray-900/80 p-6 md:p-8 rounded-3xl border border-neon-cyan/30 neon-box-cyan text-center space-y-6">
+            <span class="px-3 py-1 bg-neon-cyan/20 text-neon-cyan text-xs font-bold rounded-full uppercase">Random Generator</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-white">🎰 오늘 할 랜덤 미션 🎰</h2>
+            <p class="text-gray-300 text-sm">심심한 당신을 위한 엉뚱하고 재밌는 일일 미션!</p>
+
+            <div class="min-h-[90px] flex items-center justify-center bg-black/60 p-4 rounded-2xl border border-gray-800">
+                <p id="missionDisplay" class="text-base md:text-xl font-semibold text-neon-yellow leading-snug">
+                    버튼을 눌러 오늘의 미션을 뽑아보세요!
+                </p>
+            </div>
+
+            <button id="missionBtn" class="px-8 py-3 bg-gradient-to-r from-neon-cyan via-blue-600 to-neon-purple text-white font-bold rounded-2xl shadow-lg hover:brightness-125 transition transform active:scale-95 border border-neon-cyan">
+                <i class="fa-solid fa-dice mr-2"></i> 미션 뽑기!
+            </button>
+        </section>
+
+        <!-- 5. 10초 광클 미니게임 -->
+        <section class="bg-gray-900/80 p-6 md:p-8 rounded-3xl border border-neon-yellow/30 shadow-[0_0_15px_rgba(255,230,0,0.15)] text-center space-y-6">
+            <span class="px-3 py-1 bg-neon-yellow/20 text-neon-yellow text-xs font-bold rounded-full uppercase">Mini Game</span>
+            <h2 class="text-2xl md:text-3xl font-bold text-white">⚡ 10초 광클 챌린지 ⚡</h2>
+            <p class="text-gray-300 text-sm">10초 동안 화면 속 버튼을 최대한 많이 클릭하세요!</p>
+
+            <div class="flex justify-center items-center gap-8 py-2">
+                <div class="bg-black/50 px-6 py-3 rounded-2xl border border-gray-700">
+                    <span class="block text-xs text-gray-400">남은 시간</span>
+                    <span id="gameTimer" class="text-2xl md:text-3xl font-mono font-extrabold text-neon-cyan">10.0</span>
+                </div>
+                <div class="bg-black/50 px-6 py-3 rounded-2xl border border-gray-700">
+                    <span class="block text-xs text-gray-400">클릭 수</span>
+                    <span id="clickCount" class="text-2xl md:text-3xl font-mono font-extrabold text-neon-pink">0</span>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button id="clickGameBtn" class="w-full max-w-md h-32 bg-gradient-to-r from-neon-pink via-purple-600 to-neon-cyan text-white text-2xl font-black rounded-3xl shadow-xl hover:opacity-95 transition transform active:scale-95 border-2 border-white/20 select-none flex flex-col items-center justify-center gap-1 mx-auto">
+                    <span id="clickBtnText"><i class="fa-solid fa-play mr-2"></i>게임 시작!</span>
+                    <span id="clickBtnSubText" class="text-xs font-normal opacity-80">클릭하면 10초 카운트다운이 시작됩니다</span>
+                </button>
+            </div>
+
+            <!-- 결과 모달/대화상자 -->
+            <div id="gameResultModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div class="bg-gray-900 border-2 border-neon-pink p-6 md:p-8 rounded-3xl max-w-sm w-full text-center space-y-4 neon-box-pink">
+                    <i class="fa-solid fa-trophy text-5xl text-neon-yellow animate-bounce"></i>
+                    <h3 class="text-2xl font-bold text-white">게임 종료!</h3>
+                    <div class="py-2">
+                        <p class="text-gray-300 text-sm">당신의 최종 기록은?</p>
+                        <p id="modalScore" class="text-4xl font-extrabold text-neon-cyan my-1">0회</p>
+                        <p id="modalRank" class="text-neon-pink font-semibold text-sm">등급: Measuring...</p>
+                    </div>
+                    <button id="closeModalBtn" class="w-full py-3 bg-neon-pink text-white font-bold rounded-xl hover:bg-neon-pink/80 transition">
+                        다시 도전하기
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="w-full text-center py-8 text-gray-500 text-xs border-t border-gray-800/80 mt-12">
+        <p>© 2026 Noh Hak-Rae. Neon Night Portfolio. All rights reserved.</p>
+    </footer>
+
+    <!-- 자바스크립트 구현 -->
+    <script>
+        // ==========================================
+        // 1. 다크 / 라이트 테마 토글 기능
+        // ==========================================
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        const html = document.documentElement;
+
+        let isDark = true;
+
+        themeToggleBtn.addEventListener('click', () => {
+            isDark = !isDark;
+            if (isDark) {
+                html.classList.add('dark');
+                document.body.classList.replace('bg-gray-100', 'bg-neon-darkBg');
+                document.body.classList.replace('text-gray-900', 'text-white');
+                themeIcon.className = 'fa-solid fa-moon';
+                themeText.textContent = '어두운 화면';
+            } else {
+                html.classList.remove('dark');
+                document.body.classList.replace('bg-neon-darkBg', 'bg-gray-100');
+                document.body.classList.replace('text-white', 'text-gray-900');
+                themeIcon.className = 'fa-solid fa-sun';
+                themeText.textContent = '밝은 화면';
+            }
+        });
+
+        // ==========================================
+        // 2. 방문자 환영 인사 기능
+        // ==========================================
+        const greetBtn = document.getElementById('greetBtn');
+        const visitorNameInput = document.getElementById('visitorName');
+        const greetingMessage = document.getElementById('greetingMessage');
+
+        greetBtn.addEventListener('click', showGreeting);
+        visitorNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') showGreeting();
+        });
+
+        function showGreeting() {
+            const name = visitorNameInput.value.trim();
+            if (name) {
+                greetingMessage.textContent = `✨ 반가워요, ${name}님! 노학래의 네온 페이지에 오신 것을 환영합니다! 🎉`;
+                greetingMessage.classList.remove('hidden');
+            } else {
+                greetingMessage.textContent = '⚠️ 이름을 입력해 주시면 감사하겠습니다!';
+                greetingMessage.classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
+        // 3. 좋아하는 것 카드 3D 뒤집기
+        // ==========================================
+        const cards = document.querySelectorAll('.card-container');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const inner = card.querySelector('.card-inner');
+                inner.classList.toggle('rotate-y-180');
+            });
+        });
+
+        // ==========================================
+        // 4. 모스 부호 OX 퀴즈
+        // 정답: O ("I LIKE GAMES" = ㆍㆍ / ㆍ-ㆍㆍ ㆍㆍ -ㆍ- ㆍ / --ㆍ ㆍ- -- ㆍ ㆍㆍㆍ)
+        // ==========================================
+        const btnO = document.getElementById('btnO');
+        const btnX = document.getElementById('btnX');
+        const quizResult = document.getElementById('quizResult');
+        const quizSection = document.getElementById('quizSection');
+
+        btnO.addEventListener('click', () => handleQuizAnswer(true));
+        btnX.addEventListener('click', () => handleQuizAnswer(false));
+
+        function handleQuizAnswer(userChoice) {
+            // 정답은 O (true)
+            const isCorrect = userChoice === true;
+
+            if (isCorrect) {
+                quizResult.textContent = "🎉 정답입니다! (해독: 'I LIKE GAMES')";
+                quizResult.className = "mt-4 text-base md:text-lg font-bold min-h-[28px] text-green-400 animate-pulse";
+                triggerConfetti();
+            } else {
+                quizResult.textContent = "❌ 아쉽네요, 틀렸습니다! 다시 해독해 보세요.";
+                quizResult.className = "mt-4 text-base md:text-lg font-bold min-h-[28px] text-red-400";
+                
+                // 틀렸을 때 위글 애니메이션 효과
+                quizSection.classList.remove('animate-shake');
+                void quizSection.offsetWidth; // Trigger reflow
+                quizSection.classList.add('animate-shake');
+            }
+        }
+
+        // ==========================================
+        // 5. 오늘 할 미션 랜덤 생성기 (10개 이상)
+        // ==========================================
+        const missions = [
+            "🎮 오늘 좋아하는 게임 최소 1판 플레이하고 승리하기!",
+            "☕ 따뜻한 음료 한 잔 마시며 창밖 네온 감성 느끼기",
+            "📖 인생 웹툰의 명대사 하나 찾아 SNS나 노트에 적기",
+            "💻 'Hello World' 콘솔에 찍어보고 개운하게 웃어보기",
+            "🎵 사이버펑크 스타일 Synthwave 음악 1곡 감상하기",
+            "🚶‍♂️ 가까운 편의점 가서 가장 신기한 음료수 사먹기",
+            "👀 거울보고 세상에서 제일 멋진 표정 3초간 짓기",
+            "🧘‍♂️ 1분 동안 눈 감고 네온 도시를 날아다니는 상상하기",
+            "🍕 좋아하는 음식 주문해서 맛있게 먹기",
+            "📱 친구에게 아무 이유 없이 '네온 빛깔 하루 되라' 문장 보내기",
+            "🎨 아무 노트에나 자신만의 귀여운 마스코트 낙서하기",
+            "🌟 오늘 하루 고생한 나 자신에게 어깨 토닥토닥 해주기"
+        ];
+
+        const missionBtn = document.getElementById('missionBtn');
+        const missionDisplay = document.getElementById('missionDisplay');
+
+        missionBtn.addEventListener('click', () => {
+            // 약간의 롤링 효과 느낌 구현
+            missionDisplay.style.opacity = '0.3';
+            let count = 0;
+            const interval = setInterval(() => {
+                const randomTemp = missions[Math.floor(Math.random() * missions.length)];
+                missionDisplay.textContent = randomTemp;
+                count++;
+                if (count > 5) {
+                    clearInterval(interval);
+                    const finalMission = missions[Math.floor(Math.random() * missions.length)];
+                    missionDisplay.textContent = finalMission;
+                    missionDisplay.style.opacity = '1';
+                }
+            }, 60);
+        });
+
+        // ==========================================
+        // 6. 10초 광클 미니게임
+        // ==========================================
+        const clickGameBtn = document.getElementById('clickGameBtn');
+        const clickBtnText = document.getElementById('clickBtnText');
+        const clickBtnSubText = document.getElementById('clickBtnSubText');
+        const gameTimerDisplay = document.getElementById('gameTimer');
+        const clickCountDisplay = document.getElementById('clickCount');
+
+        const gameResultModal = document.getElementById('gameResultModal');
+        const modalScore = document.getElementById('modalScore');
+        const modalRank = document.getElementById('modalRank');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        let score = 0;
+        let timeLeft = 10.0;
+        let timerInterval = null;
+        let isGaming = false;
+
+        clickGameBtn.addEventListener('click', () => {
+            if (!isGaming && timeLeft === 10.0) {
+                // 게임 시작
+                isGaming = true;
+                score = 1;
+                clickCountDisplay.textContent = score;
+                clickBtnText.textContent = "🔥 광클하세요! 🔥";
+                clickBtnSubText.textContent = "더 빠르게!";
+                
+                timerInterval = setInterval(() => {
+                    timeLeft -= 0.1;
+                    if (timeLeft <= 0) {
+                        timeLeft = 0;
+                        endGame();
+                    }
+                    gameTimerDisplay.textContent = timeLeft.toFixed(1);
+                }, 100);
+
+            } else if (isGaming) {
+                // 게임 진행 중 클릭
+                score++;
+                clickCountDisplay.textContent = score;
+                
+                // 클릭 효과 애니메이션
+                clickGameBtn.style.transform = 'scale(0.97)';
+                setTimeout(() => { clickGameBtn.style.transform = 'scale(1)'; }, 50);
+            }
+        });
+
+        function endGame() {
+            clearInterval(timerInterval);
+            isGaming = false;
+            
+            // 랭크 계산
+            let rank = "";
+            if (score >= 80) rank = "🏆 갓핑거 (신의 손가락!)";
+            else if (score >= 60) rank = "⚡ 광속의 게이머";
+            else if (score >= 40) rank = "🔥 빛보다 빠른 손가락";
+            else if (score >= 20) rank = "👍 평범한 인간";
+            else rank = "🐢 거북이의 손길";
+
+            modalScore.textContent = `${score} 회`;
+            modalRank.textContent = `칭호: ${rank}`;
+            gameResultModal.classList.remove('hidden');
+
+            if (score >= 50) triggerConfetti();
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            gameResultModal.classList.add('hidden');
+            // 게임 리셋
+            score = 0;
+            timeLeft = 10.0;
+            gameTimerDisplay.textContent = '10.0';
+            clickCountDisplay.textContent = '0';
+            clickBtnText.innerHTML = `<i class="fa-solid fa-play mr-2"></i>게임 시작!`;
+            clickBtnSubText.textContent = '클릭하면 10초 카운트다운이 시작됩니다';
+        });
+
+        // ==========================================
+        // 7. 마우스 추적 반짝이 파티클 효과 (Sparkles)
+        // ==========================================
+        const sparkleCanvas = document.getElementById('sparkleCanvas');
+        const ctxSparkle = sparkleCanvas.getContext('2d');
+
+        function resizeSparkleCanvas() {
+            sparkleCanvas.width = window.innerWidth;
+            sparkleCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeSparkleCanvas);
+        resizeSparkleCanvas();
+
+        let sparkleParticles = [];
+
+        class SparkleParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 4 + 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = (Math.random() - 0.5) * 2;
+                this.color = ['#ff007f', '#00f3ff', '#ffe600', '#ffffff'][Math.floor(Math.random() * 4)];
+                this.life = 1;
+                this.decay = Math.random() * 0.03 + 0.01;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctxSparkle.save();
+                ctxSparkle.globalAlpha = this.life;
+                ctxSparkle.fillStyle = this.color;
+                ctxSparkle.shadowBlur = 8;
+                ctxSparkle.shadowColor = this.color;
+                ctxSparkle.beginPath();
+                ctxSparkle.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctxSparkle.fill();
+                ctxSparkle.restore();
+            }
+        }
+
+        function addSparkles(e) {
+            for (let i = 0; i < 2; i++) {
+                sparkleParticles.push(new SparkleParticle(e.clientX, e.clientY));
+            }
+        }
+
+        window.addEventListener('mousemove', addSparkles);
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                addSparkles(e.touches[0]);
+            }
+        });
+
+        function animateSparkles() {
+            ctxSparkle.clearRect(0, 0, sparkleCanvas.width, sparkleCanvas.height);
+            for (let i = 0; i < sparkleParticles.length; i++) {
+                sparkleParticles[i].update();
+                sparkleParticles[i].draw();
+                if (sparkleParticles[i].life <= 0) {
+                    sparkleParticles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animateSparkles);
+        }
+        animateSparkles();
+
+        // ==========================================
+        // 8. 정답 및 축하용 폭죽 효과 (Confetti)
+        // ==========================================
+        const confettiCanvas = document.getElementById('confettiCanvas');
+        const ctxConfetti = confettiCanvas.getContext('2d');
+
+        function resizeConfettiCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeConfettiCanvas);
+        resizeConfettiCanvas();
+
+        let confettiParticles = [];
+
+        class Confetti {
+            constructor() {
+                this.x = Math.random() * confettiCanvas.width;
+                this.y = -20;
+                this.size = Math.random() * 8 + 4;
+                this.speedY = Math.random() * 3 + 3;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.color = ['#ff007f', '#00f3ff', '#b000ff', '#ffe600', '#00ff66'][Math.floor(Math.random() * 5)];
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = (Math.random() - 0.5) * 10;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.rotation += this.rotationSpeed;
+            }
+            draw() {
+                ctxConfetti.save();
+                ctxConfetti.translate(this.x, this.y);
+                ctxConfetti.rotate((this.rotation * Math.PI) / 180);
+                ctxConfetti.fillStyle = this.color;
+                ctxConfetti.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctxConfetti.restore();
+            }
+        }
+
+        function triggerConfetti() {
+            for (let i = 0; i < 80; i++) {
+                confettiParticles.push(new Confetti());
+            }
+        }
+
+        function animateConfetti() {
+            ctxConfetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            for (let i = 0; i < confettiParticles.length; i++) {
+                confettiParticles[i].update();
+                confettiParticles[i].draw();
+                if (confettiParticles[i].y > confettiCanvas.height) {
+                    confettiParticles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animateConfetti);
+        }
+        animateConfetti();
+    </script>
+</body>
+</html>
